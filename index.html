@@ -1,5 +1,5 @@
 <!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NÁHĽAD 3.3.1 – BARF kalkulačka (nie je na webe)</title>
+<title>NÁHĽAD 3.3.3 – BARF kalkulačka (nie je na webe)</title><link rel="icon" href="data:,">
 <!-- iba lokálny náhľad: CSS témy z kópie kalk.html (28.10.2026), nie skutočná téma -->
 <link href="https://cdn.myshoptet.com/prj/dist/master/cms/templates/frontend_templates/shared/css/font-face/nunito.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap" rel="stylesheet">
@@ -18,8 +18,11 @@
   var feeds = { ok: '/google/export/products.xml', nokosti: '/fx/feed_nokosti.xml', nomenu: '/fx/feed_nomenu.xml', broken: '/fx/broken.xml', missing: '/fx/404.xml', empty: '/fx/feed_empty.xml', slow: '/fx/slow.xml' };
   var __fb = URL.createObjectURL(new Blob([window.__PT_FEED], {type: 'application/xml'}));
   window.PT_BARF_CONFIG = { cartTimeoutMs: +(q.carttimeout || 1500), catalog: { source: __fb, timeoutMs: +(q.feedtimeout || 8000) } };
+  // 3.3.3: len náhľad mimo Shoptetu – odkazy „/…“ vedú na https://www.pipers.sk (kód pre Shoptet má linkBase prázdne)
+  window.PT_BARF_CONFIG.linkBase = q.linkbase || 'https://www.pipers.sk';
   if (q.exclude) window.PT_BARF_CONFIG.catalog.excludeCodes = q.exclude.split(',');
   if (q.pf) window.PT_BARF_CONFIG.catalog.preflightMaxRequests = +q.pf;
+  if (q.pf === undefined) window.PT_BARF_CONFIG.catalog.preflightMaxRequests = 0; // 3.3.3: náhľad na github.io – stránky produktov nie sú na tejto doméne, dostupnosť z feedu
   if (q.nocart) return;
   var fail = (q.failcart || '').split(',');
   var thr = (q.throwcart || '').split(','); // 3.1.7: throwcart=KÓD → addToCart vyhodí chybu (výslovné zlyhanie)
@@ -46,9 +49,9 @@
 })();
 </script>
 </head><body class="type-page"><div class="overall-wrapper"><div class="content-wrapper container"><main id="content" class="content">
-<p style="background:#fff3cd;padding:8px;border:1px solid #e0c36b">NÁHĽAD 3.3.1 · dáta z feedu 1.11.2026 15:26 · košík je len simulácia, nič sa neobjedná</p>
+<p style="background:#fff3cd;padding:8px;border:1px solid #e0c36b">NÁHĽAD 3.3.3 · dáta z feedu 1.11.2026 15:26 · košík je len simulácia, nič sa neobjedná</p>
 <h1>BARF kalkulačka pre psov</h1>
-<!-- Piper's BARF kalkulačka v3 3.3.1 (pt-). Texty podľa sk-strings-3.2.4. Skript: barf-kalkulacka-pre-psov-v3.js -->
+<!-- Piper's BARF kalkulačka v3 3.3.3 (pt-). Texty podľa sk-strings-3.2.4. Skript: barf-kalkulacka-pre-psov-v3.js -->
 <div id="pt-barf-calc">
 <form id="pt-barf-form" novalidate>
 <div class="pt-field">
@@ -102,8 +105,8 @@
 <fieldset class="pt-field">
 <legend>Typ nákupu</legend>
 <div class="pt-opts">
-<label class="pt-opt"><input type="radio" name="pt-type" value="A" checked><span>Menu s kosťou – nechcem nič skladať<small>Striedanie 2–3 BARF menu s kosťou podľa uvedeného zloženia.</small></span></label>
-<label class="pt-opt"><input type="radio" name="pt-type" value="C"><span>Vlastné skladanie<small>Mäso, kosti a vnútornosti zvlášť, rozdelené podľa zloženia v popise produktov.</small></span></label>
+<label class="pt-opt"><input type="radio" name="pt-type" value="A" checked><span>Menu s kosťou – nechcem nič skladať<small>Striedanie 2–3 BARF menu s kosťou podľa zloženia produktov.</small></span></label>
+<label class="pt-opt"><input type="radio" name="pt-type" value="C"><span>Vlastné skladanie<small>Mäso, kosti a vnútornosti zvlášť, rozdelené podľa zloženia produktov.</small></span></label>
 </div>
 </fieldset>
 <fieldset class="pt-field">
@@ -126,17 +129,29 @@
 <button type="submit" class="pt-btn">Vypočítať</button>
 </form>
 <div id="pt-barf-result"></div>
-<noscript><p>Kalkulačka potrebuje zapnutý JavaScript. Produkty nájdete v kategórii <a href="/barf-menu/">BARF menu</a>.</p></noscript>
+<noscript><p>Kalkulačka potrebuje zapnutý JavaScript. Produkty nájdete v kategórii <a href="https://www.pipers.sk/barf-menu/">BARF menu</a>.</p></noscript>
 </div>
 
 </main></div></div>
-<script>/*! Piper's BARF kalkulačka v3 (3.3.1). Samostatný súbor, prefix pt-. Aktívny len ak na stránke existuje #pt-barf-calc.
+<script>/*! Piper's BARF kalkulačka v3 (3.3.3). Samostatný súbor, prefix pt-. Aktívny len ak na stránke existuje #pt-barf-calc.
     Starý skript barf-kalkulacka-pre-psov.js (pbk-) sa nemení. Slovenské texty = koncept na korektúru. */
 (function (root) {
   'use strict';
 
+  // 3.3.3 (QC 3.3.2 p. 6; rozhodnutie majiteľa 1.11.2026 16:41, odhad): kostná zložka v králičích menu 9397 a PBP09M1500
+  // v % hmotnosti produktu – JEDINÝ prepínač. Králik (svalovina + kosť) tvorí podľa popisu 44,5 % menu; svalovina = 44,5 − kosť.
+  //   6    = rozhodnutie majiteľa 1.11.2026 16:41 (odhad, platí teraz)   → '38.5,0,6,,,17.5'
+  //   5.8  = literatúra (13 % zo 44,5 %, pozri pravidlo (c) nižšie)       → '38.7,0,5.8,,,17.5'
+  //   1    = podľa hrubého popola 1,2 % (odhad ~1 %)                     → '43.5,0,1,,,17.5'
+  //   null = neuvedené (ako 3.3.1)                                        → ',0,,,,17.5'
+  var RABBIT_MENU_BONE = 6;
+  function rabbitMenu(b) {
+    var pct = b == null ? ',0,,,,17.5' : (Math.round((44.5 - b) * 10) / 10) + ',0,' + b + ',,,17.5';
+    return 'menu|' + pct + '|m|1|kra||';
+  }
+
   var DEFAULTS = {
-    version: '3.3.1',
+    version: '3.3.3',
     weightKg: { min: 0.5, max: 100 },
     // 3.1.2: cieľová hmotnosť musí byť 50–150 % aktuálnej.
     targetRatio: { min: 0.5, max: 1.5 },
@@ -176,16 +191,16 @@
         '9373': 'vnutornosti|||1|koz||',
         '9372': 'maso|100,0,0,0,0,0||1|koz||',
         '9153': 'kosti|0,0,100,0,0,0|c|0|kon||pre dospelých psov',
-        '9172': 'kosti||m|1|hov||', // 3.3.1 (QC p.4): mletá teľacia hruď – podiel kosti neuvedený (ako 5039)
+        '9172': 'kosti|0,0,100,0,0,0|m|1|hov||', // 3.3.2: mletá teľacia hruď = 100 % kostná zložka (rozhodnutie vlastníka 1.11.2026, cez Kontrolóra)
         '9253': 'maso|100,0,0,0,0,0||1|kac||',
         '9386': 'menu|53,29.5,3,2,0,12.5|n|0|hov||',
         '9404': 'menu|53,29.5,3,2,0,12.5|n|0|hov||',
         '9407': 'menu|40.5,24,3,,0,17.5|n|0|jah||',
-        '9397': 'menu|,0,,,,17.5|m|1|kra||', // 3.3.1 (QC p.3): 44,5 % celý králik mletý → svalovina neuvedená (ako 9102)
+        '9397': rabbitMenu(RABBIT_MENU_BONE), // 3.3.3: prepínač RABBIT_MENU_BONE hore (rozhodnutie majiteľa 1.11.2026 16:41: kosť 6 % produktu, svalovina 38,5 = ODHAD); 38 % vnútornosti bez rozpisu → neuvedené
         '9406': 'menu|44.5,10,10,2,16,17.5|m|1|kon||',
         '9399': 'menu|30,0,51,0,0,19.5|m|1|kac|h|',
         '1352': 'maso|100,0,0,0,0,0||1|los||',
-        '9102': 'kosti||m|1|kra||',
+        '9102': 'maso|87,0,13,0,0,0|m|1|kra||', // 3.3.2: celý králik – kosť 13 % = ODHAD (prirodzený podiel kostí v jatočnom tele králika, pozri pravidlo (c)); rola mäso (kategória feedu „Mäso“, ako 9289/9271)
         '9405': 'menu|63,0,20,0,0,17|m|1|kur||',
         '9398': 'menu|30,0,50,0,0,19.5|n|0|hus|h|',
         '9127': 'kosti|0,0,100,0,0,0|m|1|kur||',
@@ -194,9 +209,9 @@
         '3103': 'maso|100,0,0,0,0,0||1|mor||',
         '1253': 'maso|100,0,0,0,0,0||1|kon||',
         '9217': 'maso|100,0,0,0,0,0||1|kon||',
-        '5039': 'kosti||c|0|hov||',
+        '5039': 'kosti|0,0,100,0,0,0|c|0|hov||', // 3.3.2: chvost = 100 % kostná zložka (konvencia vlastníka 1.11.2026); šteňatám nie (puppyFlags)
         '9124': 'kosti|0,0,100,0,0,0|c|0|div||pod dohľadom',
-        '9154': 'kosti||m|1|kur||', // 3.3.1 (QC p.1): 20 % vnútorností bez rozpisu → neúplné, nepočíta sa
+        '9154': 'kosti|0,0,75,0,20,5|m|1|kur||', // 3.3.2: 75 % skelety a krky = kosť; 20 % hydinové vnútornosti bez rozpisu → „iné živočíšne časti“ (PREDPOKLAD, nezapočítané ako pečeň/orgány); rozhodnutie vlastníka 1.11.2026: v C aj šteňatám
         '9203': 'menu|40,16,12,3,9,20|n|0|hov||',
         '9204': 'menu|40,16,12,3,9,20|n|0|hov||',
         '7163': 'maso|100,0,0,0,0,0||1|pst||',
@@ -220,13 +235,13 @@
         '7058': 'kosti|0,0,100,0,0,0|c|0|kur||',
         '9367': 'maso|0,100,0,0,0,0||0|sob||',
         'PBP11M1500': 'menu|30.5,0,50,0,0,19.5|m|1|hus|h|',
-        'PBP09M1500': 'menu|,0,,,,17.5|m|1|kra||', // 3.3.1 (QC p.3): ako 9397
+        'PBP09M1500': rabbitMenu(RABBIT_MENU_BONE), // 3.3.3: ako 9397 (rozhodnutie majiteľa 1.11.2026 16:41, odhad)
         '9376': 'maso|100,0,0,0,0,0||1|kra||',
         '9361': 'maso|100,0,0,0,0,0||1|pst||',
         '9982': 'maso|100,0,0,0,0,0||1|mor||',
         '9328': 'maso|100,0,0,0,0,0||1|hov||',
         '9197': 'kosti|0,0,100,0,0,0|m|1|kur||',
-        '9131': 'kosti||c|0|hov||1–3× týždenne, pod dohľadom', // 3.3.1 (QC p.4): rebrá „svalovina + kostné časti“ bez podielov
+        '9131': 'kosti|0,0,100,0,0,0|c|0|hov||1–3× týždenne, pod dohľadom', // 3.3.2: rebrá = 100 % kostná zložka (konvencia vlastníka 1.11.2026); celé → šteňatám nie
         '1409': 'maso|100,0,0,0,0,0||1|hov||',
         '1505': 'maso|100,0,0,0,0,0||1|hov||',
         '7064': 'kosti|0,0,100,0,0,0|c|0|mor||nepodávať tepelne upravené',
@@ -260,17 +275,46 @@
       //  (a) Neúplné zloženie (niektorá živočíšna zložka bez % alebo zmes bez rozpisu) sa do Vlastného skladania (C) nedáva: pct = null.
       //      Menu (rola menu) sú len v type A; množstvo v A závisí len od dávky (gramy na menu), nie od % zloženia,
       //      preto menu s „neuvedené“ zložkami ostávajú v A a v bloku zloženia sa zobrazia ako „neuvedené“.
-      //  (b) Kosti: ako kostná zložka (100 % alebo uvedené %) sa berie len produkt pomenovaný ako kosť – kosti, krky, skelety, hrudná kosť
-      //      (konvencia z 3.2.x pre 7058, 9127, 9197, 9110, 9124; na potvrdenie vlastníkom). Mäsitý kus s kosťou (hruď, rebrá, chvost)
-      //      a celé zviera/ryba (králik, kura, losos) majú podiel kosti neuvedený → pct = null (9172, 9131, 5039, 9102, 9224, 4001).
+      //  (b) Kosti (3.3.2, rozhodnutia vlastníka 1.11.2026 16:04–16:07, odovzdané Kontrolórom): produkt pomenovaný ako kosť (kosti, krky,
+      //      skelety, hrudná kosť) aj mletá hruď, rebrá a chvost = 100 % (alebo uvedené %) kostná zložka: 7058, 9127, 9197, 9110, 9124, 9153,
+      //      9902, 7064, 9135/9134 (90 %), 9172, 9131, 5039. Celé kosti (forma c) ani 5039 šteňatám nie (výnimka 7058).
+      //      9154: 20 % „hydinové vnútornosti“ výrobca nerozpisuje → kódované ako iné živočíšne časti 20 % (predpoklad, bez kreditu za pečeň).
+      //  (c) Celý králik (9102, 9397, PBP09M1500) – ODHAD podielu kosti 13 % hmotnosti králika (bez hlavy, labiek a kože), nízka istota.
+      //      Zdroj 1: „Effect of body weight on the carcass composition of French Lop rabbits“, Can. J. Anim. Sci.
+      //      (https://cdnsciencepub.com/doi/pdf/10.4141/CJAS08060), tab. 3: kosti 12,75–13,47 % jatočného tela. Výpočet (3.3.3, QC 3.3.2):
+      //      podiel dielov jatočného tela × podiel kosti v diele = 38,50 % × 14,58 % + 21,76 % × 8,77 % + 39,74 % × 14,97 %
+      //      = 5,61 + 1,91 + 5,95 = 13,47 % kosti v jatočnom tele.
+      //      Zdroj 2: Czech J. Anim. Sci. (https://doi.org/10.17221/3958-CJAS): 13,44 % kosti v jatočnom tele – zhoduje sa so zdrojom 1.
+      //      PMC3730868 („Effect of diets on growth, digestibility, carcass and meat quality characteristics of four rabbit breeds“, tab. 4:
+      //      11,0–12,7 % živej hmotnosti, t. j. ~21–23 % jatočného tela; 331 g kosti / 1414 g) – NEOVERENÉ, nepoužité (iná metodika, odchýlka).
+      //      Kontrola popolom (NEOVERENÉ: predpoklad 25–30 % popola v čerstvej kosti; mäso králika 0,72 % popola, USDA FDC 172521):
+      //        9102 (100 % králik), hrubý popol 3,7 %: kosť x = (3,7 − 0,72) / (popol kosti − 0,72) = 2,98 / 29,28 … 2,98 / 24,28 = 10,2–12,3 %
+      //        → s odhadom 13 % približne súhlasí (pri 22 % kosti by čerstvá kosť mala len ~14 % popola).
+      //        9397/PBP09M1500 (44,5 % králik), hrubý popol 1,2 %: ak ostatné zložky majú ~0,72 % popola, kosť v menu x = (1,2 − 0,72) /
+      //        (25…30 − 0,72) = 0,48 / 24,28 … 0,48 / 29,28 = 1,6–2,0 % (čiže ~1–2 %); pri 13 % zo 44,5 % (5,8 %) by popol vyšiel
+      //        0,72 + 5,8 % × (24,28…29,28) = 2,1–2,4 %. Popol odhadu NEZODPOVEDÁ – otázka pre výrobcu.
+      //      3.3.3 – rozhodnutie majiteľa 1.11.2026 16:41 (odhad): v 9397 a PBP09M1500 kosť 6 % produktu (svalovina 38,5 %),
+      //      prepínač RABBIT_MENU_BONE na začiatku súboru; v UI označené „odhad“ (estimates nižšie).
+      //      Celé kura 9224 a losos 4001 ostávajú pct = null (nie sú v rozhodnutí vlastníka).
       // 3.3.0: 7064 (morčacie krky) a 9131, 9153, 9902 sú v tabuľke pu=0 (celé kosti); šteňatám sa neponúkajú – rozhodnutie vlastníka 1.11.2026.
       // 3.2.0: rozhodnutia vlastníka pre šteňatá mimo tabuľky (true = ponúkať šteňatám, false = nie).
       // 7058 (mäkké kuracie krky): zapnuté – rozhodnutie 29.10.2026 21:49, popis „vrátane šteniat“. 5039 (chvost): vypnuté – popis „Nevhodné pre šteňatá“.
       puppyFlags: { '7058': true, '5039': false },
       brands: { priority: ["Piper's BARF", 'PAEX'] },
       // 3.1.3: 9161 (dusený losos, nie surový) sa v kalkulačke neponúka (v tabuľke nie je; ponechané ako poistka).
-      excludeCodes: ['9161'],
+      // 3.3.2 (rozhodnutie vlastníka 1.11.2026 16:05): C „Vlastné skladanie“ = len samostatné zložky (kosti, mäso, vnútornosti); hotové menu len v A.
+      // 9950, 1002, 1048 sú vo feede v kategórii „BARF Menu“ → v C sa neponúkajú. Do A nie sú pridané: A = „Menu s kosťou“ a tieto menu kosť nemajú
+      // (otázka pre vlastníka). Záznamy v skuTable ostávajú len ako dokumentácia zloženia.
+      excludeCodes: ['9161', '9950', '1002', '1048'],
       pinFirst: [],
+      // 3.3.3 (QC 3.3.2 p. 1): hodnoty zloženia, ktoré nie sú z popisu produktu, ale odhad/predpoklad → v UI „odhad“.
+      // kód: { f: zložky (mus = svalovina a držky, bone, org, oth), why: kľúč vysvetlenia v T.estWhy }
+      estimates: {
+        '9397': { f: ['mus', 'bone'], why: 'kr' },
+        'PBP09M1500': { f: ['mus', 'bone'], why: 'kr' },
+        '9102': { f: ['mus', 'bone'], why: 'kr' },
+        '9154': { f: ['oth'], why: 'vn' }
+      },
       preflightMaxRequests: 4,
       preflightTimeoutMs: 6000
     },
@@ -289,7 +333,10 @@
     defaultSetType: 'A',
     oversupplyHintFactor: 2,
     cartTimeoutMs: 10000,
-    cartUrlFallback: '/kosik/'
+    cartUrlFallback: '/kosik/',
+    // 3.3.3: len pre samostatný náhľad (GitHub Pages) – predpona odkazov na produkty, kategórie a košík, napr. 'https://www.pipers.sk'.
+    // Na Shoptete ostáva prázdne → odkazy zostávajú relatívne.
+    linkBase: ''
   };
 
   var T = {
@@ -315,8 +362,24 @@
     menuN: 'BARF menu {n}',
     splitRatioC: 'Množstvá sme rozdelili podľa zloženia uvedeného v popise vybraných produktov tak, aby sa živočíšna časť čo najviac priblížila orientačnému pomeru.',
     // 3.2.2 (bod 4): pri šteňati orientačný pomer pre dospelých psov neuvádzame ako cieľ.
+    splitRatioCEst: 'Množstvá sme rozdelili podľa zloženia vybraných produktov (z popisu, hodnoty označené „odhad“ sú náš odhad) tak, aby sa živočíšna časť čo najviac priblížila orientačnému pomeru.',
+    splitPupEst: 'Množstvá sme rozdelili podľa zloženia vybraných produktov (z popisu, hodnoty označené „odhad“ sú náš odhad). Rozdelenie je len technický výpočet, nie odporúčaný pomer pre šteňa.',
     splitPup: 'Množstvá sme rozdelili podľa zloženia uvedeného v popise vybraných produktov. Rozdelenie je len technický výpočet, nie odporúčaný pomer pre šteňa.',
     shareAll: 'celé vypočítané množstvo',
+    // 3.3.3 (bod 3): krátky súhrn nákupu hneď pod výsledkom, podrobnosti v rozbaľovacom bloku.
+    sumTitle: 'Nákup v skratke',
+    editTitle: 'Výber produktov a počet balení',
+    moreTitle: 'Zloženie nákupu a podrobnosti výpočtu',
+    // 3.3.3 (bod 4): vybrané balenie mimo zoznamu (dlhé názvy sa v zatvorenom zozname skracujú).
+    selPack: 'Vybrané balenie: {g} za {p} ({ppk}/kg)',
+    // 3.3.3 (QC 3.3.2 p. 1): hodnoty, ktoré výrobca neuvádza.
+    estTag: 'odhad',
+    byStated: 'podľa uvedeného zloženia',
+    byStatedEst: 'podľa uvedeného zloženia a nášho odhadu',
+    estProd: 'zloženie čiastočne odhadnuté',
+    compTitleEst: 'Zloženie nákupu (časť hodnôt je odhad)',
+    compEst: 'Hodnoty označené „odhad“ výrobca v popise neuvádza: {list}.',
+    estWhy: { kr: 'podiel kostí v celom mletom králikovi sme odhadli', vn: 'hydinové vnútornosti bez rozpisu sú započítané ako iné živočíšne časti' },
     puppyFilter: 'Pre šteňa ponúkame len produkty, ktoré sú podľa popisu vhodné aj pre šteňatá.',
     normMax: 'Počet balení je vypočítaný podľa hornej hranice dávky.',
     normMin: 'Počet balení je vypočítaný podľa dolnej hranice dávky. Pri vyššej dávke množstvo nemusí zodpovedať celému obdobiu.',
@@ -331,6 +394,8 @@
     compPlants: 'Zelenina, ovocie a ďalšie rastlinné zložky: {pl} % z hmotnosti nákupu.',
     compTarget: 'Orientačný pomer živočíšnej časti (nie odporúčanie pre konkrétneho psa): svalovina 80 %, kostná zložka 10 %, pečeň a sekrečné orgány 10 %. Výpočet vychádza z hmotnosti balení a zo zloženia uvedeného v popise produktov.',
     compBasis: 'Výpočet vychádza z hmotnosti balení a zo zloženia uvedeného v popise produktov.',
+    compTargetEst: 'Orientačný pomer živočíšnej časti (nie odporúčanie pre konkrétneho psa): svalovina 80 %, kostná zložka 10 %, pečeň a sekrečné orgány 10 %. Výpočet vychádza z hmotnosti balení, zo zloženia v popise produktov a z odhadov označených „odhad“.',
+    compBasisEst: 'Výpočet vychádza z hmotnosti balení, zo zloženia v popise produktov a z odhadov označených „odhad“.',
     addTitle: 'Rozdiel oproti orientačnému pomeru',
     addOrg: 'Pečeň a sekrečné orgány sú podľa uvedeného zloženia pod orientačným pomerom 10 %. Ak chcete pomer priblížiť, môžete pridať vnútornosti, napríklad: {list}.',
     addOrgCat: 'Pečeň a sekrečné orgány sú podľa uvedeného zloženia pod orientačným pomerom 10 %. Ak chcete pomer priblížiť, môžete pridať vnútornosti.',
@@ -373,6 +438,12 @@
     lasts2: 'množstvo približne na {x} dni pri vypočítanej dennej dávke',
     lasts5: 'množstvo približne na {x} dní pri vypočítanej dennej dávke',
     lasts0: 'menej ako na 1 deň pri vypočítanej dennej dávke',
+    // 3.3.3 (bod 5): pri viacerých riadkoch platia dni len spolu s ostatnými riadkami – dni sa nesčítavajú.
+    // {dd} = daysWord podľa skloňovania, {p} = podiel riadku na dennej dávke v %.
+    daysWord: { 1: '{x} deň', 2: '{x} dni', 5: '{x} dní' },
+    lastsMenu2: 'množstvo približne na {dd}, ak ho striedate s druhým vybraným menu (toto menu tvorí asi {p} % dennej dávky)',
+    lastsMenuN: 'množstvo približne na {dd}, ak ho striedate s ostatnými vybranými menu (toto menu tvorí asi {p} % dennej dávky)',
+    lastsPart: 'množstvo približne na {dd} spolu s ostatnými zložkami nákupu (táto zložka tvorí asi {p} % dennej dávky)',
     oversupply: 'Balení je viac, ako zodpovedá zvolenému obdobiu pri vypočítanej dávke. Skontrolujte, či sa vám zmestia do mrazničky.',
     total: 'Spolu orientačne',
     priceNote: 'Orientačná cena, platí cena v košíku.',
@@ -390,7 +461,7 @@
     addErr: 'nepodarilo sa ho pridať do košíka. Skúste to znova alebo ho pridajte na stránke produktu.',
     // 3.2.0: výsledok pridania sa nedá overiť → žiadne opakovanie tohto produktu, len kontrola košíka.
     unknownItem: 'Nepodarilo sa overiť, či sa produkt pridal. Skontrolujte, prosím, košík.',
-    proposed: 'Produkt „{a}“ momentálne nie je skladom, do košíka sme ho nepridali. Ako náhradu navrhujeme produkt „{b}“, je vybraný vyššie. Skontrolujte počet balení a kliknite na „Pridať zvyšné“.',
+    proposed: 'Produkt „{a}“ momentálne nie je skladom, do košíka sme ho nepridali. Ako náhradu navrhujeme produkt „{b}“, je vybraný v zozname produktov. Skontrolujte počet balení a kliknite na „Pridať zvyšné“.',
     uncovered: 'Produkt „{a}“ momentálne nie je skladom a v skupine {label} nemáme náhradu skladom.',
     notInStock: 'nie je skladom.',
     pack: 'balenie',
@@ -444,10 +515,12 @@
 
   function fmtKg(x) { var r = Math.round(x * 10) / 10; return String(r).replace('.', ','); }
   // „Množstvo na N dní …“ (lasts*): tvar podľa posledného čísla rozsahu.
-  function lastsText(a, b) {
+  // 3.3.3 (bod 5): mode 'menu2' | 'menuN' | 'part' + p (podiel na dennej dávke v %) → text s „spolu s ostatnými“.
+  function lastsText(a, b, mode, p) {
     if (a === 0 && b === 0) return T.lasts0;
-    var x = a === b ? String(b) : a + '\u2013' + b, n = b;
-    return tpl(n === 1 ? T.lasts1 : (n >= 2 && n <= 4 ? T.lasts2 : T.lasts5), { x: x });
+    var x = a === b ? String(b) : a + '\u2013' + b, n = b, k = n === 1 ? 1 : (n >= 2 && n <= 4 ? 2 : 5);
+    if (mode) return tpl(mode === 'part' ? T.lastsPart : (mode === 'menu2' ? T.lastsMenu2 : T.lastsMenuN), { dd: tpl(T.daysWord[k], { x: x }), p: p });
+    return tpl(k === 1 ? T.lasts1 : (k === 2 ? T.lasts2 : T.lasts5), { x: x });
   }
   function normBrand(b) { return String(b == null ? '' : b).replace(/[\u2018\u2019\u02bc\u0060\u00b4]/g, "'").replace(/^\s+|\s+$/g, ''); }
 
@@ -502,6 +575,13 @@
     }
     var pf = cfg.catalog.puppyFlags || {};
     if (pf.hasOwnProperty(code)) e.pu = !!pf[code];
+    // 3.3.3: odhadnuté zložky (len tie, ktoré majú hodnotu) → e.est = {f:{mus:1,…}, why}
+    var es = cfg.catalog.estimates || {}, ef = es.hasOwnProperty(code) ? es[code] : null;
+    if (ef && e.pct) {
+      var o = {}, any = false;
+      for (var q = 0; q < (ef.f || []).length; q++) { var kk = ef.f[q], val = kk === 'mus' ? e.pct.mus : e.pct[kk]; if (val != null) { o[kk] = 1; any = true; } }
+      if (any) e.est = { f: o, why: ef.why || '' };
+    }
     return e;
   }
   // Podpisy v zozname produktov: názov – značka, balenia, €/kg; pri zhode sa doplnia kódy, aby boli podpisy rôzne.
@@ -575,7 +655,7 @@
       var p = map[key];
       if (!p) {
         p = map[key] = { key: it.productId || ('c' + it.code), role: te.role, name: it.name, brand: it.brand, url: it.url, variants: [], ppk: Infinity, pin: Infinity, ord: order++,
-          pct: te.pct, form: te.form, pu: te.pu, sp: te.sp, hb: te.hb, fish: te.fish, note: te.note };
+          pct: te.pct, form: te.form, pu: te.pu, sp: te.sp, hb: te.hb, fish: te.fish, note: te.note, est: te.est || null };
         roles[te.role].push(p);
       } else if (!te.pu) p.pu = false;
       p.variants.push(it);
@@ -639,8 +719,8 @@
   // 3.2.1 (M-data-1): mus/bone/org/oth = len uvedené hodnoty (dolná hranica). nul[k] = hmotnosť produktov, pri ktorých je zložka k
   // „neuvedené“; ext[k] = koľko z neurčenej časti (unk) môže najviac patriť zložke k (horná hranica = k + ext[k]).
   function compose(rows) {
-    var K = ['mus', 'bone', 'org', 'oth'], c = { total: 0, pl: 0, mus: 0, bone: 0, org: 0, oth: 0, unk: 0, nul: {}, ext: {} }, q;
-    for (q = 0; q < K.length; q++) { c.nul[K[q]] = 0; c.ext[K[q]] = 0; }
+    var K = ['mus', 'bone', 'org', 'oth'], c = { total: 0, pl: 0, mus: 0, bone: 0, org: 0, oth: 0, unk: 0, nul: {}, ext: {}, est: {}, estWhy: [] }, q;
+    for (q = 0; q < K.length; q++) { c.nul[K[q]] = 0; c.ext[K[q]] = 0; c.est[K[q]] = 0; }
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i];
       if (!r.product || !r.variant || !(r.amount > 0)) continue;
@@ -649,6 +729,9 @@
       if (!p) { c.unk += m; for (q = 0; q < K.length; q++) { c.nul[K[q]] += m; c.ext[K[q]] += m; } continue; }
       var v = { mus: p.mus == null || p.drz == null ? null : p.mus + p.drz, bone: p.bone, org: p.org, oth: p.oth }, u = m * p.unk / 100;
       c.pl += m * nz(p.pl) / 100; c.unk += u;
+      // 3.3.3: hmotnosť produktov, pri ktorých je zložka odhad
+      var es = r.product.est;
+      if (es) { for (q = 0; q < K.length; q++) if (es.f[K[q]]) c.est[K[q]] += m; if (es.why && c.estWhy.indexOf(es.why) < 0) c.estWhy.push(es.why); }
       for (q = 0; q < K.length; q++) {
         var x = v[K[q]];
         if (K[q] === 'mus' && x == null) x = nz(p.mus) + nz(p.drz);
@@ -932,8 +1015,10 @@
   }
   function cartUrl(cfg) {
     var a = document.querySelector('a.cart-count[href], [data-testid="headerCart"][href]');
-    return a ? a.getAttribute('href') : cfg.cartUrlFallback;
+    return linkTo(a ? a.getAttribute('href') : cfg.cartUrlFallback, cfg);
   }
+  // 3.3.3: náhľad mimo Shoptetu – cesta „/…“ dostane predponu cfg.linkBase (na Shoptete prázdne → bez zmeny).
+  function linkTo(u, cfg) { return u && cfg.linkBase && /^\/(?!\/)/.test(u) ? cfg.linkBase.replace(/\/+$/, '') + u : u; }
 
   /* ---------- CSS ---------- */
   var CSS = '#pt-barf-calc{--pt-a:var(--color-primary,#a24847);--pt-b:#e3d9d4;max-width:760px;margin:0 auto;font-size:16px;line-height:1.5;box-sizing:border-box}' +
@@ -972,6 +1057,18 @@
     '#pt-barf-calc .pt-comp{border-top:1px solid var(--pt-b);padding:14px 0 4px}' +
     '#pt-barf-calc .pt-comp h3{font-size:18px;margin:0 0 6px}' +
     '#pt-barf-calc .pt-comp ul{margin:4px 0 8px;padding-left:20px}' +
+    '#pt-barf-calc .pt-sum{border-top:2px solid var(--pt-b);margin-top:8px;padding-top:4px}' +
+    '#pt-barf-calc .pt-sum h3,#pt-barf-calc h3.pt-edit{font-size:18px;margin:10px 0 6px}' +
+    '#pt-barf-calc .pt-sum ul{margin:4px 0 8px;padding-left:20px}' +
+    '#pt-barf-calc .pt-sum li{margin:4px 0;overflow-wrap:anywhere}' +
+    // 3.3.3 (bod 3): kompaktnejšie odstavce vo výsledku, aby súhrn a tlačidlo košíka boli na mobile v prvej obrazovke po výsledku.
+    '#pt-barf-calc .pt-res p{margin:0 0 10px}#pt-barf-calc .pt-res p.pt-hint{margin:8px 0}#pt-barf-calc .pt-sum li,#pt-barf-calc .pt-sum .pt-muted{line-height:1.4}' +
+    '@media (max-width:480px){#pt-barf-calc .pt-res{padding:12px}#pt-barf-calc .pt-sum li{font-size:15px}#pt-barf-calc .pt-sum .pt-muted{font-size:13px}}' +
+    '#pt-barf-calc .pt-selinfo{margin:6px 0 0;font-size:15px;font-weight:600}' +
+    '#pt-barf-calc .pt-est{font-style:italic}' +
+    '#pt-barf-calc .pt-more{border-top:1px solid var(--pt-b);margin-top:8px}' +
+    '#pt-barf-calc .pt-more>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:var(--pt-a);list-style-position:inside}' +
+    '#pt-barf-calc select{max-width:100%}' +
     '#pt-barf-calc .pt-sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}' +
     '@media (min-width:768px){#pt-barf-calc .pt-grid{grid-template-columns:2fr 1fr}}';
 
@@ -1103,6 +1200,8 @@
     document.addEventListener('pointerup', function (e) { if (!isAdd(e)) up(); }, true);
     document.addEventListener('pointercancel', up, true);
     document.addEventListener('dragend', up, true);
+    // 3.3.3: zapamätať, či je blok „Zloženie nákupu a podrobnosti výpočtu“ otvorený (prekreslenie ho nezatvorí).
+    this.out.addEventListener('toggle', function (e) { if (e.target && e.target.id === 'pt-more') self.state.more = e.target.open; }, true);
     this.out.addEventListener('click', function (e) {
       var b = e.target.closest ? e.target.closest('[data-pt-act]') : null;
       if (!b) return;
@@ -1221,52 +1320,71 @@
     this.rows = rows; this.inp = inp; this.dose = d;
     if (s) {
       var catOk = st.cat === 'ok', isA = rows.length && rows[0].role === 'menu';
-      if (d.isPuppy) h.push('<p class="pt-muted">' + esc(inp.norm === 'min' ? T.normMin : T.normMax) + '</p>');
-      if (catOk && d.isPuppy) h.push('<p class="pt-muted">' + esc(T.puppyFilter) + '</p>');
-      if (catOk && isA && rows[0].product) h.push('<p class="pt-muted">' + esc(rows.length > 1 ? tpl(T.rotation, { n: rows.length }) : T.rotationOne) + '</p>');
-      if (catOk && !isA) h.push('<p class="pt-muted" id="pt-split">' + esc(d.isPuppy ? T.splitPup : T.splitRatioC) + '</p>');
-      var total = 0, menuEmpty = false, over = false, noPct = {};
+      // 3.3.3 (bod 5): koľko riadkov má podiel na dennej dávke → dni platia len spolu s ostatnými riadkami.
+      var nAct = 0;
+      for (var a0 = 0; a0 < rows.length; a0++) if (rows[a0].f > 0) nAct++;
+      var lmode = nAct > 1 ? (isA ? (nAct === 2 ? 'menu2' : 'menuN') : 'part') : null;
+      var total = 0, menuEmpty = false, over = false, noPct = {}, R = [], sum = [];
       for (var i = 0; i < rows.length; i++) {
         var r = rows[i], id = r.id;
         // 3.2.3 (M-1): šteňa, Vlastné skladanie, skupina bez produktu → bez gramov (nenaznačujeme pomer pre dospelých).
         var noGr = catOk && d.isPuppy && !isA && !r.product;
-        h.push('<div class="pt-row" data-row="' + esc(id) + '"><h3>' + esc(r.label) + (noGr ? '' : ': ' + fmtGr(r.Gmin, r.Gmax)) + '</h3>');
+        R.push('<div class="pt-row" data-row="' + esc(id) + '"><h3>' + esc(r.label) + (noGr ? '' : ': ' + fmtGr(r.Gmin, r.Gmax)) + '</h3>');
         if (catOk) {
           if (!r.product) {
             if (r.role === 'menu') menuEmpty = true;
             var inRole = (st.catalog.roles[r.role] || []).filter(function (x) { return !d.isPuppy || x.pu; });
             var rowNoPct = !isA && inRole.length > 0; // 3.2.0: produkty skladom sú, ale bez % zloženia
             if (rowNoPct) noPct[r.role] = true;
-            h.push('<p' + (rowNoPct ? ' id="pt-nopct-' + id + '"' : '') + '>' + esc(tpl(rowNoPct ? T.noPctC : T.emptyRole, { label: r.label })) + (r.url ? ' <a id="pt-cat-' + id + '" class="pt-link" href="' + esc(r.url) + '">' + esc(T.seeCategory) + ' ' + esc(r.label) + '</a>' : '') + '</p>');
+            R.push('<p' + (rowNoPct ? ' id="pt-nopct-' + id + '"' : '') + '>' + esc(tpl(rowNoPct ? T.noPctC : T.emptyRole, { label: r.label })) + (r.url ? ' <a id="pt-cat-' + id + '" class="pt-link" href="' + esc(linkTo(r.url, cfg)) + '">' + esc(T.seeCategory) + ' ' + esc(r.label) + '</a>' : '') + '</p>');
           } else {
             total += r.price; over = over || r.oversupply;
-            h.push('<div class="pt-grid"><div><label class="pt-label" for="pt-sel-' + id + '">' + esc(T.product) + '</label><select id="pt-sel-' + id + '" data-role="' + id + '"' + dis + '>');
+            if (r.amount > 0) sum.push('<li><strong>' + r.amount + '\u00a0×</strong> ' + esc(r.product.name) + ' <span class="pt-muted">(' + fmtG(r.variant.grams) + ')</span> · ' + fmtEur(r.price) + '</li>');
+            R.push('<div class="pt-grid"><div><label class="pt-label" for="pt-sel-' + id + '">' + esc(T.product) + '</label><select id="pt-sel-' + id + '" data-role="' + id + '"' + dis + '>');
             var labels = optionLabels(r.candidates);
             for (var j = 0; j < r.candidates.length; j++) {
               var c = r.candidates[j];
-              h.push('<option value="' + esc(c.key) + '"' + (c === r.product ? ' selected' : '') + '>' + esc(labels[j]) + '</option>');
+              R.push('<option value="' + esc(c.key) + '"' + (c === r.product ? ' selected' : '') + '>' + esc(labels[j]) + '</option>');
             }
-            h.push('</select></div><div><label class="pt-label" for="pt-amt-' + id + '">' + esc(T.packs) + ' × ' + fmtG(r.variant.grams) + '</label>' +
+            // 3.3.3 (bod 4): vybrané balenie, cena za balenie a cena za kg aj mimo zatvoreného zoznamu.
+            var ppk = r.variant.grams > 0 ? r.variant.price / r.variant.grams * 1000 : 0;
+            R.push('</select><p class="pt-selinfo" id="pt-selinfo-' + id + '">' + esc(tpl(T.selPack, { g: fmtG(r.variant.grams).replace(/\u00a0/g, ' '), p: fmtEur(r.variant.price).replace(/\u00a0/g, ' '), ppk: fmtEur(ppk).replace(/\u00a0/g, ' ') })) + '</p></div>' +
+              '<div><label class="pt-label" for="pt-amt-' + id + '">' + esc(T.packs) + ' × ' + fmtG(r.variant.grams) + '</label>' +
               '<div class="pt-qty"><input type="text" inputmode="numeric" id="pt-amt-' + id + '" data-role="' + id + '" value="' + r.amount + '"' + dis + '>' +
               (r.nMax > r.nMin ? '<span class="pt-muted">(' + r.nMin + '\u2013' + r.nMax + ')</span>' : '') + '</div></div></div>');
-            var pn = r.product.url ? '<a id="pt-plink-' + id + '" href="' + esc(r.product.url) + '">' + esc(r.product.name) + '</a>' : '<span>' + esc(r.product.name) + '</span>';
-            h.push('<p class="pt-pname">' + pn + ' <span class="pt-muted">· ' + esc(r.product.brand) + ' · ' + esc(T.pack) + ' ' + fmtG(r.variant.grams) + '</span></p>');
-            h.push('<p>≈ ' + fmtEur(r.price) + (r.lastsMin != null ? ' · ' + esc(lastsText(r.lastsMin, r.lastsMax)) : '') + '</p>');
-            if (r.product.hb && !d.isPuppy) h.push('<p class="pt-hint">' + esc(T.highBone) + '</p>');
-            if (r.product.form === 'c') h.push('<p class="pt-hint">' + esc(r.product.note ? tpl(T.wholeBone, { note: r.product.note }) : T.wholeBoneDef) + '</p>');
+            var pn = r.product.url ? '<a id="pt-plink-' + id + '" href="' + esc(linkTo(r.product.url, cfg)) + '">' + esc(r.product.name) + '</a>' : '<span>' + esc(r.product.name) + '</span>';
+            R.push('<p class="pt-pname">' + pn + ' <span class="pt-muted">· ' + esc(r.product.brand) + (r.product.est ? ' · <span class="pt-est" id="pt-est-' + id + '">' + esc(T.estProd) + '</span>' : '') + '</span></p>');
+            R.push('<p id="pt-lasts-' + id + '">≈ ' + fmtEur(r.price) + (r.lastsMin != null ? ' · ' + esc(lmode && r.f > 0 ? lastsText(r.lastsMin, r.lastsMax, lmode, Math.round(s * r.f)) : lastsText(r.lastsMin, r.lastsMax)) : '') + '</p>');
+            if (r.product.hb && !d.isPuppy) R.push('<p class="pt-hint">' + esc(r.product.est ? T.highBone.replace(T.byStated, T.byStatedEst) : T.highBone) + '</p>');
+            if (r.product.form === 'c') R.push('<p class="pt-hint">' + esc(r.product.note ? tpl(T.wholeBone, { note: r.product.note }) : T.wholeBoneDef) + '</p>');
           }
         }
-        h.push('</div>');
+        R.push('</div>');
       }
-      if (catOk) h.push(this.compHtml(rows, isA, d.isPuppy, noPct));
+      // 3.3.3 (bod 3): súhrn nákupu (čo kúpiť, spolu, upozornenia, tlačidlo košíka) hneď pod výsledkom.
+      h.push('<div class="pt-sum" id="pt-summary">');
+      if (catOk && sum.length) h.push('<h3>' + esc(T.sumTitle) + '</h3><ul id="pt-sum-list">' + sum.join('') + '</ul>');
+      if (catOk && total > 0) h.push('<p class="pt-total">' + esc(T.total) + ': <strong>' + fmtEur(total) + '</strong><br><span class="pt-muted">' + esc(T.priceNote) + '</span></p>');
       if (menuEmpty && isA && st.catalog && (candidatesFor('maso', st.catalog, cfg, d.isPuppy).length || candidatesFor('kosti', st.catalog, cfg, d.isPuppy).length)) h.push('<p class="pt-hint">' + esc(T.tryC) + '</p>');
       if (over) h.push('<p class="pt-hint">' + esc(T.oversupply) + '</p>');
-      if (st.cat === 'ok' && total > 0) h.push('<p class="pt-total">' + esc(T.total) + ': <strong>' + fmtEur(total) + '</strong><br><span class="pt-muted">' + esc(T.priceNote) + '</span></p>');
-      h.push('<p class="pt-muted">' + esc(T.massNote) + '</p>');
       // 3.2.1: upozornenie hneď pod výsledkom (pred tlačidlom košíka), nie až na konci.
       h.push('<p class="pt-muted" id="pt-disclaimer">' + esc(T.disclaimer) + '</p>');
       for (var n = 0; n < st.notes.length; n++) h.push('<p class="pt-hint">' + esc(st.notes[n]) + '</p>');
-      if (st.cat === 'ok') h.push(this.cartHtml(rows));
+      if (catOk) h.push(this.cartHtml(rows));
+      h.push('</div>');
+      if (catOk && rows.length) h.push('<h3 class="pt-edit" id="pt-edit">' + esc(T.editTitle) + '</h3>');
+      // 3.3.3 (bod 3): poznámka k hornej/dolnej hranici dávky (šteňa) presunutá zo začiatku výsledku nad zoznam produktov – ostáva viditeľná.
+      if (d.isPuppy) h.push('<p class="pt-muted" id="pt-norm-note">' + esc(inp.norm === 'min' ? T.normMin : T.normMax) + '</p>');
+      h.push(R.join(''));
+      // 3.3.3 (bod 3): zloženie nákupu a vysvetlivky v rozbaľovacom bloku (stav otvorenia sa pamätá – state.more).
+      var M = [];
+      if (catOk && d.isPuppy) M.push('<p class="pt-muted">' + esc(T.puppyFilter) + '</p>');
+      if (catOk && isA && rows[0].product) M.push('<p class="pt-muted">' + esc(rows.length > 1 ? tpl(T.rotation, { n: rows.length }) : T.rotationOne) + '</p>');
+      var cpS = catOk ? compose(rows) : null, anyEst = !!(cpS && cpS.estWhy.length);
+      if (catOk && !isA) M.push('<p class="pt-muted" id="pt-split">' + esc(d.isPuppy ? (anyEst ? T.splitPupEst : T.splitPup) : (anyEst ? T.splitRatioCEst : T.splitRatioC)) + '</p>');
+      if (catOk) M.push(this.compHtml(rows, isA, d.isPuppy, noPct));
+      M.push('<p class="pt-muted">' + esc(T.massNote) + '</p>');
+      h.push('<details class="pt-more" id="pt-more"' + (st.more ? ' open' : '') + '><summary>' + esc(T.moreTitle) + '</summary>' + M.join('') + '</details>');
     } else h.push('<p class="pt-muted" id="pt-disclaimer">' + esc(T.disclaimer) + '</p>');
     h.push('</div>');
     this.out.innerHTML = h.join('');
@@ -1319,13 +1437,17 @@
     if (!(cp.total > 0)) return '';
     function str(x) { return String(x).replace('.', ','); }
     var sh = shares(cp);
-    function val(k) { return !sh.nul[k] ? str(sh[k]) + ' %' : (sh[k] > 0 ? tpl(T.compMin, { x: str(sh[k]) }) : T.compNA[k]); }
+    // 3.3.3 (QC 3.3.2 p. 1): zložka, ktorej hodnota je aspoň čiastočne odhad → „(odhad)“
+    function est(k) { return cp.est[k] > 0 && (k !== 'oth' || sh.oth > 0) ? ' (' + T.estTag + ')' : ''; }
+    function val(k) { return (!sh.nul[k] ? str(sh[k]) + ' %' : (sh[k] > 0 ? tpl(T.compMin, { x: str(sh[k]) }) : T.compNA[k])) + (sh[k] > 0 ? est(k) : ''); }
+    var anyEst = cp.estWhy.length > 0;
     var line = tpl(T.compAnimal, { mus: val('mus'), bone: val('bone'), org: val('org') });
     if (sh.oth > 0 || sh.nul.oth) line += ', ' + tpl(T.compOth, { oth: val('oth') });
     if (sh.unk > 0) line += ', ' + tpl(T.compUnk, { unk: str(sh.unk) });
-    h.push('<div class="pt-comp" id="pt-comp"><h3>' + esc(T.compTitle) + '</h3><p>' + esc(line) + '.</p>');
+    h.push('<div class="pt-comp" id="pt-comp"><h3>' + esc(anyEst ? T.compTitleEst : T.compTitle) + '</h3><p id="pt-comp-line">' + esc(line) + '.</p>');
     h.push('<p>' + esc(tpl(T.compPlants, { pl: str(Math.round(cp.pl / cp.total * 1000) / 10) })) + '</p>');
-    h.push('<p class="pt-muted" id="pt-comp-basis">' + esc(isPuppy ? T.compBasis : T.compTarget) + '</p>');
+    h.push('<p class="pt-muted" id="pt-comp-basis">' + esc(isPuppy ? (anyEst ? T.compBasisEst : T.compBasis) : (anyEst ? T.compTargetEst : T.compTarget)) + '</p>');
+    if (anyEst) h.push('<p class="pt-muted" id="pt-comp-est">' + esc(tpl(T.compEst, { list: cp.estWhy.map(function (w) { return T.estWhy[w]; }).join('; ') })) + '</p>');
     if (isPuppy) { h.push('</div>'); return h.join(''); }
     function names(role, test, n) {
       var L = cat ? candidatesFor(role, cat, cfg, isPuppy) : [], out = [];
@@ -1356,7 +1478,8 @@
       h.push('<h3>' + esc(T.addTitle) + '</h3>');
       if (!adds.length) adds.push(T.addNone);
       h.push('<ul id="pt-add-hints">');
-      for (var i = 0; i < adds.length; i++) h.push('<li>' + esc(adds[i]) + '</li>');
+      // 3.3.3: pri odhadnutých hodnotách nehovoríme len „podľa uvedeného zloženia“
+      for (var i = 0; i < adds.length; i++) h.push('<li>' + esc(anyEst ? adds[i].replace(T.byStated, T.byStatedEst) : adds[i]) + '</li>');
       h.push('</ul>');
     } else {
       var reached = withinTarget(sh, cfg), manual = false, st = this.state;
@@ -1404,7 +1527,7 @@
     if (c && c.list && c.list.length && c.status !== 'busy') {
       h.push('<ul class="pt-status">');
       for (i = 0; i < c.list.length; i++) {
-        var x = c.list[i], link = x.url ? ' <a id="pt-st-' + i + '" class="pt-link" href="' + esc(x.url) + '">' + esc(T.openProduct) + '</a>' : '';
+        var x = c.list[i], link = x.url ? ' <a id="pt-st-' + i + '" class="pt-link" href="' + esc(linkTo(x.url, this.cfg)) + '">' + esc(T.openProduct) + '</a>' : '';
         if (x.ok) h.push('<li>' + esc(x.name) + ': <strong>' + esc(T.addedItem) + '</strong></li>');
         else if (x.unk) h.push('<li>' + esc(x.name) + ': <strong>' + esc(T.unknownItem) + '</strong>' + link + '</li>');
         else if (x.part) h.push('<li>' + esc(x.name) + ': <strong>' + esc(tpl(T.partialItem, { x: x.x, y: x.y })) + '</strong>' + link + '</li>');
