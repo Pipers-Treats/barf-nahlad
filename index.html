@@ -1,5 +1,5 @@
 <!doctype html><html lang="sk"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>NÁHĽAD 3.3.3 – BARF kalkulačka (nie je na webe)</title><link rel="icon" href="data:,">
+<title>NÁHĽAD 3.3.4 – BARF kalkulačka (nie je na webe)</title><link rel="icon" href="data:,"><link rel="icon" href="data:,">
 <!-- iba lokálny náhľad: CSS témy z kópie kalk.html (28.10.2026), nie skutočná téma -->
 <link href="https://cdn.myshoptet.com/prj/dist/master/cms/templates/frontend_templates/shared/css/font-face/nunito.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;600;700&display=swap" rel="stylesheet">
@@ -20,8 +20,11 @@
   window.PT_BARF_CONFIG = { cartTimeoutMs: +(q.carttimeout || 1500), catalog: { source: __fb, timeoutMs: +(q.feedtimeout || 8000) } };
   // 3.3.3: len náhľad mimo Shoptetu – odkazy „/…“ vedú na https://www.pipers.sk (kód pre Shoptet má linkBase prázdne)
   window.PT_BARF_CONFIG.linkBase = q.linkbase || 'https://www.pipers.sk';
+  // 3.3.3: len náhľad mimo Shoptetu – odkazy „/…“ vedú na https://www.pipers.sk (kód pre Shoptet má linkBase prázdne)
+  window.PT_BARF_CONFIG.linkBase = q.linkbase || 'https://www.pipers.sk';
   if (q.exclude) window.PT_BARF_CONFIG.catalog.excludeCodes = q.exclude.split(',');
   if (q.pf) window.PT_BARF_CONFIG.catalog.preflightMaxRequests = +q.pf;
+  if (q.pf === undefined) window.PT_BARF_CONFIG.catalog.preflightMaxRequests = 0; // 3.3.3: náhľad na github.io – stránky produktov nie sú na tejto doméne, dostupnosť z feedu
   if (q.pf === undefined) window.PT_BARF_CONFIG.catalog.preflightMaxRequests = 0; // 3.3.3: náhľad na github.io – stránky produktov nie sú na tejto doméne, dostupnosť z feedu
   if (q.nocart) return;
   var fail = (q.failcart || '').split(',');
@@ -49,9 +52,9 @@
 })();
 </script>
 </head><body class="type-page"><div class="overall-wrapper"><div class="content-wrapper container"><main id="content" class="content">
-<p style="background:#fff3cd;padding:8px;border:1px solid #e0c36b">NÁHĽAD 3.3.3 · dáta z feedu 1.11.2026 15:26 · košík je len simulácia, nič sa neobjedná</p>
+<p style="background:#fff3cd;padding:8px;border:1px solid #e0c36b">NÁHĽAD 3.3.4 · dáta z feedu 1.11.2026 15:26 · košík je len simulácia, nič sa neobjedná</p>
 <h1>BARF kalkulačka pre psov</h1>
-<!-- Piper's BARF kalkulačka v3 3.3.3 (pt-). Texty podľa sk-strings-3.2.4. Skript: barf-kalkulacka-pre-psov-v3.js -->
+<!-- Piper's BARF kalkulačka v3 3.3.4 (pt-). Texty podľa sk-strings-3.2.4. Skript: barf-kalkulacka-pre-psov-v3.js -->
 <div id="pt-barf-calc">
 <form id="pt-barf-form" novalidate>
 <div class="pt-field">
@@ -105,7 +108,7 @@
 <fieldset class="pt-field">
 <legend>Typ nákupu</legend>
 <div class="pt-opts">
-<label class="pt-opt"><input type="radio" name="pt-type" value="A" checked><span>Menu s kosťou – nechcem nič skladať<small>Striedanie 2–3 BARF menu s kosťou podľa zloženia produktov.</small></span></label>
+<label class="pt-opt"><input type="radio" name="pt-type" value="A" checked><span>Menu s kosťou – nechcem nič skladať<small>Striedanie 2–3 BARF menu s kosťou, vybraných podľa zloženia produktov.</small></span></label>
 <label class="pt-opt"><input type="radio" name="pt-type" value="C"><span>Vlastné skladanie<small>Mäso, kosti a vnútornosti zvlášť, rozdelené podľa zloženia produktov.</small></span></label>
 </div>
 </fieldset>
@@ -133,7 +136,7 @@
 </div>
 
 </main></div></div>
-<script>/*! Piper's BARF kalkulačka v3 (3.3.3). Samostatný súbor, prefix pt-. Aktívny len ak na stránke existuje #pt-barf-calc.
+<script>/*! Piper's BARF kalkulačka v3 (3.3.4). Samostatný súbor, prefix pt-. Aktívny len ak na stránke existuje #pt-barf-calc.
     Starý skript barf-kalkulacka-pre-psov.js (pbk-) sa nemení. Slovenské texty = koncept na korektúru. */
 (function (root) {
   'use strict';
@@ -151,7 +154,7 @@
   }
 
   var DEFAULTS = {
-    version: '3.3.3',
+    version: '3.3.4',
     weightKg: { min: 0.5, max: 100 },
     // 3.1.2: cieľová hmotnosť musí byť 50–150 % aktuálnej.
     targetRatio: { min: 0.5, max: 1.5 },
@@ -362,8 +365,8 @@
     menuN: 'BARF menu {n}',
     splitRatioC: 'Množstvá sme rozdelili podľa zloženia uvedeného v popise vybraných produktov tak, aby sa živočíšna časť čo najviac priblížila orientačnému pomeru.',
     // 3.2.2 (bod 4): pri šteňati orientačný pomer pre dospelých psov neuvádzame ako cieľ.
-    splitRatioCEst: 'Množstvá sme rozdelili podľa zloženia vybraných produktov (z popisu, hodnoty označené „odhad“ sú náš odhad) tak, aby sa živočíšna časť čo najviac priblížila orientačnému pomeru.',
-    splitPupEst: 'Množstvá sme rozdelili podľa zloženia vybraných produktov (z popisu, hodnoty označené „odhad“ sú náš odhad). Rozdelenie je len technický výpočet, nie odporúčaný pomer pre šteňa.',
+    splitRatioCEst: 'Množstvá sme rozdelili podľa zloženia vybraných produktov z ich popisu (pri hodnotách označených „odhad“ podľa nášho odhadu) tak, aby sa živočíšna časť čo najviac priblížila orientačnému pomeru.',
+    splitPupEst: 'Množstvá sme rozdelili podľa zloženia vybraných produktov z ich popisu (pri hodnotách označených „odhad“ podľa nášho odhadu). Rozdelenie je len technický výpočet, nie odporúčaný pomer pre šteňa.',
     splitPup: 'Množstvá sme rozdelili podľa zloženia uvedeného v popise vybraných produktov. Rozdelenie je len technický výpočet, nie odporúčaný pomer pre šteňa.',
     shareAll: 'celé vypočítané množstvo',
     // 3.3.3 (bod 3): krátky súhrn nákupu hneď pod výsledkom, podrobnosti v rozbaľovacom bloku.
@@ -378,8 +381,8 @@
     byStatedEst: 'podľa uvedeného zloženia a nášho odhadu',
     estProd: 'zloženie čiastočne odhadnuté',
     compTitleEst: 'Zloženie nákupu (časť hodnôt je odhad)',
-    compEst: 'Hodnoty označené „odhad“ výrobca v popise neuvádza: {list}.',
-    estWhy: { kr: 'podiel kostí v celom mletom králikovi sme odhadli', vn: 'hydinové vnútornosti bez rozpisu sú započítané ako iné živočíšne časti' },
+    compEst: 'Hodnoty označené „odhad“ výrobca v popise neuvádza. Ako sme postupovali: {list}.',
+    estWhy: { kr: 'podiel kostí v celom mletom králikovi sme odhadli', vn: 'hydinové vnútornosti bez bližšieho rozpisu sme započítali ako iné živočíšne časti' },
     puppyFilter: 'Pre šteňa ponúkame len produkty, ktoré sú podľa popisu vhodné aj pre šteňatá.',
     normMax: 'Počet balení je vypočítaný podľa hornej hranice dávky.',
     normMin: 'Počet balení je vypočítaný podľa dolnej hranice dávky. Pri vyššej dávke množstvo nemusí zodpovedať celému obdobiu.',
@@ -394,8 +397,8 @@
     compPlants: 'Zelenina, ovocie a ďalšie rastlinné zložky: {pl} % z hmotnosti nákupu.',
     compTarget: 'Orientačný pomer živočíšnej časti (nie odporúčanie pre konkrétneho psa): svalovina 80 %, kostná zložka 10 %, pečeň a sekrečné orgány 10 %. Výpočet vychádza z hmotnosti balení a zo zloženia uvedeného v popise produktov.',
     compBasis: 'Výpočet vychádza z hmotnosti balení a zo zloženia uvedeného v popise produktov.',
-    compTargetEst: 'Orientačný pomer živočíšnej časti (nie odporúčanie pre konkrétneho psa): svalovina 80 %, kostná zložka 10 %, pečeň a sekrečné orgány 10 %. Výpočet vychádza z hmotnosti balení, zo zloženia v popise produktov a z odhadov označených „odhad“.',
-    compBasisEst: 'Výpočet vychádza z hmotnosti balení, zo zloženia v popise produktov a z odhadov označených „odhad“.',
+    compTargetEst: 'Orientačný pomer živočíšnej časti (nie odporúčanie pre konkrétneho psa): svalovina 80 %, kostná zložka 10 %, pečeň a sekrečné orgány 10 %. Výpočet vychádza z hmotnosti balení, zo zloženia v popise produktov a z našich odhadov pri hodnotách označených „odhad“.',
+    compBasisEst: 'Výpočet vychádza z hmotnosti balení, zo zloženia v popise produktov a z našich odhadov pri hodnotách označených „odhad“.',
     addTitle: 'Rozdiel oproti orientačnému pomeru',
     addOrg: 'Pečeň a sekrečné orgány sú podľa uvedeného zloženia pod orientačným pomerom 10 %. Ak chcete pomer priblížiť, môžete pridať vnútornosti, napríklad: {list}.',
     addOrgCat: 'Pečeň a sekrečné orgány sú podľa uvedeného zloženia pod orientačným pomerom 10 %. Ak chcete pomer priblížiť, môžete pridať vnútornosti.',
@@ -441,9 +444,9 @@
     // 3.3.3 (bod 5): pri viacerých riadkoch platia dni len spolu s ostatnými riadkami – dni sa nesčítavajú.
     // {dd} = daysWord podľa skloňovania, {p} = podiel riadku na dennej dávke v %.
     daysWord: { 1: '{x} deň', 2: '{x} dni', 5: '{x} dní' },
-    lastsMenu2: 'množstvo približne na {dd}, ak ho striedate s druhým vybraným menu (toto menu tvorí asi {p} % dennej dávky)',
-    lastsMenuN: 'množstvo približne na {dd}, ak ho striedate s ostatnými vybranými menu (toto menu tvorí asi {p} % dennej dávky)',
-    lastsPart: 'množstvo približne na {dd} spolu s ostatnými zložkami nákupu (táto zložka tvorí asi {p} % dennej dávky)',
+    lastsMenu2: 'množstvo približne na {dd} pri striedaní s druhým vybraným menu (toto menu tvorí asi {p} % dennej dávky)',
+    lastsMenuN: 'množstvo približne na {dd} pri striedaní s ostatnými vybranými menu (toto menu tvorí asi {p} % dennej dávky)',
+    lastsPart: 'množstvo približne na {dd} spolu s ostatnými položkami nákupu (táto položka tvorí asi {p} % dennej dávky)',
     oversupply: 'Balení je viac, ako zodpovedá zvolenému obdobiu pri vypočítanej dávke. Skontrolujte, či sa vám zmestia do mrazničky.',
     total: 'Spolu orientačne',
     priceNote: 'Orientačná cena, platí cena v košíku.',
